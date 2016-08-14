@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Combined Demonstration</title>
+  <style type="text/css">
+    body {
+      background-color: #C0C0C0;
+      font-family: sans-serif;
+    }
+
+    #main {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+     #previous, #latest {
+      float: left;
+      padding: 0 1em;
+      margin-bottom: 2em;
+      border: 1px solid black;
+      border-radius: 5px;
+      background-color: rgba(255, 255, 255, 0.9);
+    }
+
+    #previous *, #latest * {
+      margin: 0.5em 0;
+    }
+
+    #latest {
+      margin-left: 2em;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: -1;
+    }
+  </style>
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css">
+</head>
+<body>
+  <div id="main">
+    <h1>Combined Demonstration</h1>
+    <noscript>JavaScript is required for this demo.</noscript>
+    <h2 id="datastream">Loading Datastream&hellip;</h2>
+    <div id="previous">
+      <p>Previous value:</p>
+      <h4 id="previous-value">Waiting&hellip;</h4>
+      <h5 id="previous-time">Waiting&hellip;</h5>
+    </div>
+    <div id="latest">
+      <h1 id="latest-value">Loading&hellip;</h1>
+      <h4 id="latest-time">Loading&hellip;</h4>
+    </div>
+    <div id="chart"></div>
+  </div>
+  <div id="map"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.14.1/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highstock/4.2.6/highstock.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      // Prepare chart. Make background semi-transparent to show map.
+      var chart = new Highcharts.StockChart("chart", {
+        chart: {
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        },
+        title: { text: "Loading Chart Data…" },
+        series: []
+      });
+      var series = null;
+
+      chart.showLoading();
+
+      // Prepare map. Disable interaction to avoid accidental input.
+      var map = L.map('map', {
+        dragging: false,
+        touchZoom: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+        keyboard: false,
+        zoomControl: false
+      }).setView([51.505, -114.1], 6);
+      L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      // We start with a *link* to a datastream entity
+      var datastreamURI = "http://example.sensorup.com/v1.0/Datastreams(4207)";
+      // Hold state for the latest observation UI
+      var latestObservation = null;
+      var symbol = "";
+
+      function setPrevious(observation) {
+        if (observation !== null) {
+          $("#previous-value").html(observation.result + " " + symbol);
+          $("#previous-time").html(observation.phenomenonTime);
+        }
+      }
+
+      function setLatest(observation) {
+        $("#latest-value").html(observation.result + " " + symbol);
+        $("#latest-time").html(observation.phenomenonTime);
+      }
+
+      // Retrieve the datastream and use $expand for the Thing and Locations.
+      // $expand is NOT used for Observations as we need the navigationLink to
+      // retrieve new observations.
+      $.getJSON(datastreamURI + "?$expand=Thing/Locations", function(datastream) {
+        // Display datastream details
+        $("#datastream").html(datastream.description);
+        chart.setTitle({ text: datastream.description });
+        symbol = datastream.unitOfMeasurement.symbol;
+
+        function getLatestResult() {
+          $.getJSON(datastream["Observations@iot.navigationLink"] + "?$top=1&$select=result,phenomenonTime,id", function(response) {
+            var observation = response.value[0];
+
+            // Only update if id has changed or this is the first fetch
+            if (latestObservation === null || latestObservation["@iot.id"] !== observation["@iot.id"]) {
+              setPrevious(latestObservation);
+              setLatest(observation);
+              latestObservation = observation;
+
+              // Add result to chart
+              if (series !== null) {
+                var timestamp = moment(observation.phenomenonTime).valueOf();
+                series.addPoint([timestamp, parseFloat(observation.result)]);
+              }
+            }
+          });
+
+          // Poll again in 10000 milliseconds
+          window.setTimeout(getLatestResult, 10000);
+        }
+
+        // Retrieve Location embedded in response by $expand function,
+        // and update the map view
+        var location = datastream.Thing.Locations[0];
+        var feature = L.geoJson(location.location);
+        feature.addTo(map);
+        map.fitBounds(feature.getBounds());
+
+        // Retrieve latest 100 observations
+        $.getJSON(datastream["Observations@iot.navigationLink"] + "?$orderby=phenomenonTime%20desc&$top=100", function(response) {
+
+          var data = $.map(response.value, function(observation) {
+            // chart library expects an array of [timestamp, value]
+            var timestamp = moment(observation.phenomenonTime).valueOf();
+            return [[timestamp, parseFloat(observation.result)]];
+          });
+
+          // Observations came in reverse chronological order from the server,
+          // but data **must** be sorted in ascending time order for the chart
+          data.sort(function(a, b) {
+            return a[0] - b[0];
+          });
+
+          // Add data to chart then hide the loading indicator.
+          series = chart.addSeries({
+            data: data,
+            tooltip: {
+              valueSuffix: " " + datastream.unitOfMeasurement.symbol
+            }
+          });
+          series.yAxis.update({
+            title: {
+              text: datastream.unitOfMeasurement.name + " (" + datastream.unitOfMeasurement.symbol + ")"
+            }
+          });
+          chart.hideLoading();
+
+          getLatestResult();
+        });
+      });
+
+    });
+  </script>
+</body>
+</html>

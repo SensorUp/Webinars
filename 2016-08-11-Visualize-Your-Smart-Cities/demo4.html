@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Latest Value Demonstration</title>
+  <style type="text/css">
+    body {
+      background-color: #C0C0C0;
+      font-family: sans-serif;
+    }
+
+    #main {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    #previous, #latest {
+      float: left;
+      padding: 0 1em;
+      border: 1px solid black;
+      border-radius: 5px;
+    }
+
+    #previous *, #latest * {
+      margin: 0.5em 0;
+    }
+
+    #latest {
+      margin-left: 2em;
+    }
+  </style>
+</head>
+<body>
+  <div id="main">
+    <h1>Latest Value Demonstration</h1>
+    <noscript>JavaScript is required for this demo.</noscript>
+    <h2 id="datastream">Loading Datastream&hellip;</h2>
+    <div id="previous">
+      <p>Previous value:</p>
+      <h4 id="previous-value">Waiting&hellip;</h4>
+      <h5 id="previous-time">Waiting&hellip;</h5>
+    </div>
+    <div id="latest">
+      <h1 id="latest-value">Loading&hellip;</h1>
+      <h4 id="latest-time">Loading&hellip;</h4>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      // We start with a *link* to a datastream entity
+      var datastreamURI = "http://example.sensorup.com/v1.0/Datastreams(4207)";
+      var latestObservation = null;
+      var symbol = "";
+
+      function setPrevious(observation) {
+        if (observation !== null) {
+          $("#previous-value").html(observation.result + " " + symbol);
+          $("#previous-time").html(observation.phenomenonTime);
+        }
+      }
+
+      function setLatest(observation) {
+        $("#latest-value").html(observation.result + " " + symbol);
+        $("#latest-time").html(observation.phenomenonTime);
+      }
+
+      // Retrieve the datastream
+      $.getJSON(datastreamURI, function(datastream) {
+        $("#datastream").html(datastream.description);
+        symbol = datastream.unitOfMeasurement.symbol;
+
+        function getLatestResult() {
+          $.getJSON(datastream["Observations@iot.navigationLink"] + "?$top=1&$select=result,phenomenonTime,id", function(response) {
+            var observation = response.value[0];
+
+            // Only update if id has changed or this is the first fetch
+            if (latestObservation === null || latestObservation["@iot.id"] !== observation["@iot.id"]) {
+              setPrevious(latestObservation);
+              setLatest(observation);
+              latestObservation = observation;
+            }
+          });
+
+          // Poll again in 10000 milliseconds
+          window.setTimeout(getLatestResult, 10000);
+        }
+
+        getLatestResult();
+      });
+    });
+  </script>
+</body>
+</html>

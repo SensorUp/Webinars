@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>$expand Static Chart Demonstration</title>
+  <style type="text/css">
+    body {
+      background-color: #C0C0C0;
+      font-family: sans-serif;
+    }
+
+    #main {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="main">
+    <h1>$expand Static Chart Demonstration</h1>
+    <noscript>JavaScript is required for this demo.</noscript>
+    <div id="chart"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.14.1/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highstock/4.2.6/highstock.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      // prepare chart
+      var chart = new Highcharts.StockChart("chart", {
+        title: { text: "Loading Chart Data…" },
+        series: []
+      });
+
+      chart.showLoading();
+
+      // We start with a *link* to a datastream entity
+      var datastreamURI = "http://example.sensorup.com/v1.0/Datastreams(4207)";
+
+      // Retrieve the datastream
+      $.getJSON(datastreamURI + "?$expand=Observations", function(datastream) {
+        // Update some of the chart details
+        chart.setTitle({ text: datastream.description });
+
+        // Retrieve observations embedded in response by $expand function
+        var data = $.map(datastream.Observations, function(observation) {
+          // chart library expects an array of [timestamp, value]
+          var timestamp = moment(observation.phenomenonTime).valueOf();
+          return [[timestamp, parseFloat(observation.result)]];
+        });
+
+        // Observations came in reverse chronological order from the server,
+        // but data **must** be sorted in ascending time order for the chart
+        data.sort(function(a, b) {
+          return a[0] - b[0];
+        });
+
+        // Add data to chart then hide the loading indicator.
+        var series = chart.addSeries({
+          data: data,
+          tooltip: {
+            valueSuffix: " " + datastream.unitOfMeasurement.symbol
+          }
+        });
+        series.yAxis.update({
+          title: {
+            text: datastream.unitOfMeasurement.name + " (" + datastream.unitOfMeasurement.symbol + ")"
+          }
+        });
+        chart.hideLoading();
+      });
+
+    });
+  </script>
+</body>
+</html>
