@@ -1,3 +1,6 @@
+#Acknowledgement
+Thanks to James Badger for developing the original source codes. You can find the original source code here: https://bitbucket.org/geosensorweblab/visualization-tutorials
+
 # Visualization Demos
 
 These pages demonstrate how to retrieve data from SensorThings and display the data in a format that is easier to understand than raw JSON.
