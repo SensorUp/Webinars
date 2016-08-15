@@ -5,7 +5,7 @@ This is part of the SensorUp 2016 Summer Webinar on building simple smart cities
 All the libraries are loaded from a Content Distribution Network (CDN). This simplifies loading the libraries and means we do not need to distribute the libraries with this demo page.
 
 ## SensorThings URL
-This tutorial uses SensorThings Examples (powered by SensorUp): http://example.sensorup.com
+This tutorial uses SensorThings Examples (powered by SensorUp): http://example.sensorup.com/v1.0
 
 ## Demo 1: Static chart with separate AJAX calls
 
