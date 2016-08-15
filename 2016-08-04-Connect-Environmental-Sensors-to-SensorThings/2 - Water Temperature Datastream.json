@@ -1,0 +1,22 @@
+{
+  "description": "Water Temperature",
+  "unitOfMeasurement": {
+    "name": "degree C",
+    "symbol": "C",
+    "definition": "https://en.wikipedia.org/wiki/Celsius"
+  },
+  "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+  "ObservedProperty": {
+    "name": "Water Temperature",
+    "definition": "http://www.tides.gc.ca/eng/info/glossary",
+    "description": "In situ temperature of a body of water."
+  },
+  "Sensor": {
+    "encodingType": "http://schema.org/description",
+    "metadata": "Water temperature sensor station",
+    "description": "Water temperature station"
+  },
+  "Thing": {
+    "@iot.id": "id_here"
+  }
+}
