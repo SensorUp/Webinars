@@ -4,6 +4,9 @@ This is part of the SensorUp 2016 Summer Webinar on building simple smart cities
 
 All the libraries are loaded from a Content Distribution Network (CDN). This simplifies loading the libraries and means we do not need to distribute the libraries with this demo page.
 
+## SensorThings URL
+This tutorial uses SensorThings Examples (powered by SensorUp): http://example.sensorup.com
+
 ## Demo 1: Static chart with separate AJAX calls
 
 This page shows how we can use JQuery for AJAX, MomentJS for date parsing, and HighCharts for graphing of Observations from SensorThings.
