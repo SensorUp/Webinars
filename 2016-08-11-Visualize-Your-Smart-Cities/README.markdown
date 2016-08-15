@@ -1,6 +1,6 @@
 # Visualization Demos
 
-These pages demonstrate how to retrieve data from SensorThings and display the data in a format that is easier to understand than raw JSON.
+This is part of the SensorUp 2016 Summer Webinar on building simple smart cities dashboard with SensorThings API. Video is available [here](https://www.youtube.com/watch?v=W-_FgpwscCo) and slides are available [here](http://www.slideshare.net/steve.liang/visualize-your-smart-city-build-a-realtime-smart-city-dashboard-for-sensorthings-api). These pages demonstrate how to retrieve data from SensorThings and display the data in a format that is easier to understand than raw JSON.
 
 All the libraries are loaded from a Content Distribution Network (CDN). This simplifies loading the libraries and means we do not need to distribute the libraries with this demo page.
 
