@@ -1,6 +1,3 @@
-#Acknowledgement
-Thanks to James Badger for developing the original source codes. You can find the original source code here: https://bitbucket.org/geosensorweblab/visualization-tutorials
-
 # Visualization Demos
 
 These pages demonstrate how to retrieve data from SensorThings and display the data in a format that is easier to understand than raw JSON.
@@ -38,3 +35,6 @@ This demo displays two values: the latest Observation result, and the previous l
 Combining all the code from the previous demos, we get a page with all the features together. Note that `$expand` is *not* used to retrieve the Observations, as this causes the `Observations@iot.navigationLink` property to not be sent from SensorThings. Without that navigationLink, we cannot retrieve more observations unless we re-request the base entity without the Observations expanded.
 
 The poller runs every 10 seconds and only checks for the latest value. If more than one Observation is posted between checks, then it is possible some Observations will not be shown on the chart. If graphing all the Observations is really important, then MQTT should be used to subscribe to new Observations instead.
+
+#Acknowledgement
+Thanks to James Badger for developing the original source codes. You can find the original source code here: https://bitbucket.org/geosensorweblab/visualization-tutorials
