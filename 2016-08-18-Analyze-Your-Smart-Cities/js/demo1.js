@@ -2,9 +2,9 @@ $(document).ready(function(){
 	//Get moderate, unhealthy, total readings by making a get requests to SensorThings API. 
 	//The code below is setting up the promises so we can execute the rest of the code after we get all the data.
 
-	var moderate_readings_promise = $.getJSON("http://example.sensorup.com/v1.0/Datastreams(3505)/Observations?$filter=result ge 13 and result lt 35.5");
-	var unhealthy_readings_promise = $.getJSON("http://example.sensorup.com/v1.0/Datastreams(3505)/Observations?$filter=result gt 35.5");
-	var total_readings_promise= $.getJSON("http://example.sensorup.com/v1.0/Datastreams(3505)/Observations");
+	var moderate_readings_promise = $.getJSON("http://example.sensorup.com/v1.0/Datastreams(3505)/Observations?$filter=result ge 13 and result lt 35.5&$top=1");
+	var unhealthy_readings_promise = $.getJSON("http://example.sensorup.com/v1.0/Datastreams(3505)/Observations?$filter=result gt 35.5&$top=1");
+	var total_readings_promise= $.getJSON("http://example.sensorup.com/v1.0/Datastreams(3505)/Observations?$top=1");
 
 	// Attach a handler, which is called once all the requests have been completed successfully.
 	$.when(moderate_readings_promise, unhealthy_readings_promise, total_readings_promise).done(function(moderate_readings_data, unhealthy_readings_data, total_readings_data){
